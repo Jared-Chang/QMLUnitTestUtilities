@@ -1,0 +1,1 @@
+qmltestrunner %* | python %~dp0/highlighter.py
