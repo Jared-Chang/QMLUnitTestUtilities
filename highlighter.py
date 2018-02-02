@@ -22,34 +22,27 @@ if __name__ == "__main__":
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
 
     is_fail = False
-    fail_list = []
-    warning_list = []
 
     for line in sys.stdin:
         firstToken = line.split()[0]
 
         if firstToken == 'PASS':
             is_fail = False
-            print '\033[0;32m' + line.rstrip() + '\033[0m'
 
         elif firstToken == 'QWARN':
             is_fail = False
-            warning_list.append(line)
-            
-        elif firstToken == 'Totals:':
+            print '\033[93m' + line.rstrip() + '\033[0m'
+
+        elif firstToken == 'QDEBUG':
             is_fail = False
+            print '\033[96m' + line.rstrip() + '\033[0m'
 
-            for warning in warning_list:                
-                print '\033[93m' + warning.rstrip() + '\033[0m'
-
-            for fail in fail_list:
-                print '\033[1;31m' + fail.rstrip() + '\033[0m'
-
-            print '\033[1m' + line.rstrip() + '\033[0m'
-
-        elif firstToken == 'FAIL!' or is_fail:
+        elif firstToken == 'FAIL!':
             is_fail = True
-            fail_list.append(line)
+            print '\033[1;31m' + line.rstrip() + '\033[0m'
+
+        elif is_fail:
+            print '\033[33m' + line.rstrip() + '\033[0m'
 
         else:
             print '\033[1m' + line.rstrip() + '\033[0m'
