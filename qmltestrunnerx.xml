@@ -6,6 +6,6 @@
     <executable output="ignore" error="ignore" modifiesdocument="no">
         <path>C:/Windows/System32/cmd.exe</path>
         <arguments>/c start cmd.exe /c qmltestrunnerx -import "@test@" -input %{CurrentDocument:FilePath}</arguments>
-        <workingdirectory>C:/Qt/Qt5.7.0/5.7/msvc2013/bin</workingdirectory>
+        <workingdirectory>@vast2@</workingdirectory>
     </executable>
 </externaltool>
