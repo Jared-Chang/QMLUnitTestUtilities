@@ -13,8 +13,7 @@ if __name__ == "__main__":
     is_win10 = not winVersion.find("Windows-10") == -1
 
     if (is_win7):
-        current_dir = os.path.dirname(os.path.abspath(
-            inspect.getfile(inspect.currentframe())))
+        current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
         subprocess.call([current_dir + "/ansiconx64/ansicon.exe", "-i"])
         
     elif (is_win10):
@@ -46,3 +45,8 @@ if __name__ == "__main__":
 
         else:
             print '\033[1m' + line.rstrip() + '\033[0m'
+            
+
+    if (is_win7):
+        current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+        subprocess.call([current_dir + "/ansiconx64/ansicon.exe", "-u"])
