@@ -1,5 +1,5 @@
-Put all file to Qt bin folder (same as qmltestrunner.exe)
+Run install.py pass qml test folder and qt msvc2013 folder
 
-And use qmltestrunnerX as qmltestrunner
+Shortcut Ctrl + ` will enable on qt creator qml test file
 
 Use ANSICON to support win7 console colored output
