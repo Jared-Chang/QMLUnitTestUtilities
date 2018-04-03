@@ -46,10 +46,8 @@ def modify_qt_creator_settings_file():
     setting_file.close()
 
 
-def modify_external_setting_file(qml_import_test_path):
+def modify_external_setting_file(qml_import_test_path, qt_path):
     
-    vast_registy = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, "SOFTWARE\WOW6432Node\VIVOTEK, Inc.\VAST")
-    install_path = _winreg.QueryValueEx(vast_registy, "INSTALL_PATH")[0] + "\\Client\\Vast2"
     qt_creator_setting_path = os.getenv("APPDATA") + "\\QtProject\\qtcreator\\externaltools"
 
     f = open(qt_creator_setting_path + "\\qmltestrunnerx.xml", "r")
@@ -58,7 +56,7 @@ def modify_external_setting_file(qml_import_test_path):
 
     f = open(qt_creator_setting_path + "\\qmltestrunnerx.xml", "w")
     content = re.sub("@test@", qml_import_test_path, content)
-    content = re.sub("@vast2@", install_path, content)
+    content = re.sub("@qtbin@", qt_path + "\\bin", content)
     f.write(content)
     f.close()
 
@@ -104,7 +102,7 @@ def install(qml_import_test_path, qt_path):
     copy_file_to_qt_path(qt_path)
     modify_testrunner_script(qt_path)
     copy_file_to_qt_creator()
-    modify_external_setting_file(qml_import_test_path)
+    modify_external_setting_file(qml_import_test_path, qt_path)
 
 
 def main():
