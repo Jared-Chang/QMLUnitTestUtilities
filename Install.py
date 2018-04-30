@@ -55,8 +55,8 @@ def modify_external_setting_file(qml_import_test_path, qt_path):
     f.close()
 
     f = open(qt_creator_setting_path + "\\qmltestrunnerx.xml", "w")
-    content = re.sub("@test@", qml_import_test_path, content)
-    content = re.sub("@qtbin@", qt_path + "\\bin", content)
+    content = re.sub("test_folder", qml_import_test_path, content)
+    content = re.sub("qt_bin", qt_path + "\\bin", content)
     f.write(content)
     f.close()
 
@@ -72,7 +72,7 @@ def modify_testrunner_script(qt_path):
     f.close()
 
     f = open(bin_path + "\\qmltestrunnerX.bat", "w")
-    f.write(re.sub("@vast2@", install_path, content))
+    f.write(re.sub("vast2", install_path, content))
     f.close()
 
 

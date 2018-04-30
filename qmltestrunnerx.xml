@@ -5,7 +5,7 @@
     <category></category>
     <executable output="ignore" error="ignore" modifiesdocument="no">
         <path>C:/Windows/System32/cmd.exe</path>
-        <arguments>/c start cmd.exe /c qmltestrunnerx -import "@test@" -input %{CurrentDocument:FilePath}</arguments>
-        <workingdirectory>@qtbin@</workingdirectory>
+        <arguments>/c start cmd.exe /c qmltestrunnerx -import "test_folder" -input %{CurrentDocument:FilePath}</arguments>
+        <workingdirectory>qt_bin</workingdirectory>
     </executable>
 </externaltool>
