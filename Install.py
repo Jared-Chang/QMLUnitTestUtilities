@@ -25,7 +25,7 @@ SET all_arg=%1
 
 if "x%last_arg:tst_=%"=="x%last_arg%" (
     FOR %%A in ("%last_arg%") do (
-        SET last_arg=%%~dpAUT\tst_%%~nxA
+        SET last_arg=%%~dpAUT\\tst_%%~nxA
     )
 )
 
