@@ -1,10 +1,10 @@
 # Install
 
-python install.py [QT_BINARY_FOLDER] (eg. C:\Qt\Qt5.7.0\5.7\msvc2013\bin)
+python install.py \[QT_BINARY_FOLDER\] (eg. C:\Qt\Qt5.7.0\5.7\msvc2013\bin)
 
 # Uninstall
 
-python install.py -u [QT_BINARY_FOLDER] (eg. C:\Qt\Qt5.7.0\5.7\msvc2013\bin)
+python install.py -u \[QT_BINARY_FOLDER\] (eg. C:\Qt\Qt5.7.0\5.7\msvc2013\bin)
 
 # Usage
 
