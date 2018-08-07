@@ -177,18 +177,28 @@ def remove_qt_creator_settings():
 
 def remove_script_and_binary(qt_path):
 
-    shutil.rmtree(qt_path + '\\ansiconx64')
-    os.remove(qt_path + '\\qmltestrunnerX_autoFind.bat')
-    os.remove(qt_path + '\\qmltestrunnerX.bat')
-    os.remove(qt_path + '\\highlighter.py')
+    if os.path.exists(qt_path + '\\ansiconx64'):
+        shutil.rmtree(qt_path + '\\ansiconx64')
+
+    if os.path.exists(qt_path + '\\qmltestrunnerX_autoFind.bat'):
+        os.remove(qt_path + '\\qmltestrunnerX_autoFind.bat')
+
+    if os.path.exists(qt_path + '\\qmltestrunnerX.bat'):
+        os.remove(qt_path + '\\qmltestrunnerX.bat')
+
+    if os.path.exists(qt_path + '\\highlighter.py'):
+        os.remove(qt_path + '\\highlighter.py')
 
 
 def remove_external_tools():
 
     qt_creator_setting_path = os.getenv("APPDATA") + "\\QtProject\\qtcreator\\externaltools\\"
 
-    os.remove(qt_creator_setting_path + "\\qmltestrunnerx.xml")
-    os.remove(qt_creator_setting_path + "\\qmltestrunnerx_autoFind.xml")
+    if os.path.exists(qt_creator_setting_path + "\\qmltestrunnerx.xml"):
+        os.remove(qt_creator_setting_path + "\\qmltestrunnerx.xml")
+    
+    if os.path.exists(qt_creator_setting_path + "\\qmltestrunnerx_autoFind.xml"):
+        os.remove(qt_creator_setting_path + "\\qmltestrunnerx_autoFind.xml")
 
 
 def uninstall(qt_path):
