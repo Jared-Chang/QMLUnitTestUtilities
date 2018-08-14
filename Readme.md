@@ -1,6 +1,6 @@
 # Install
 
-python install.py \[QT_BINARY_FOLDER\] (eg. C:\Qt\Qt5.7.0\5.7\msvc2013\bin)
+python install.py \[QT_BINARY_FOLDER\] \[VAST_TEST_FOLDER\] (eg. C:\Qt\Qt5.7.0\5.7\msvc2013\bin D:\Work\VAST2\VAST2\VAST2\Test\)
 
 # Uninstall
 
