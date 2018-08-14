@@ -47,7 +47,7 @@ TESTRUNNER_AUTO_FIND_QT_EXTERNAL_TOOL = '''<?xml version="1.0" encoding="UTF-8"?
     <category></category>
     <executable output="ignore" error="ignore" modifiesdocument="yes">
         <path>C:/Windows/System32/cmd.exe</path>
-        <arguments>/c start cmd.exe /c {qt_bin}\\qmltestrunnerx_autoFind.bat -input %{{CurrentDocument:FilePath}}</arguments>
+        <arguments>/c start cmd.exe /c {qt_bin}\\qmltestrunnerx_autoFind.bat -import {test_folder} -input %{{CurrentDocument:FilePath}}</arguments>
         <workingdirectory>{qt_bin}</workingdirectory>
     </executable>
 </externaltool>'''
@@ -59,7 +59,7 @@ TESTRUNNER_QT_EXTERNAL_TOOL = '''<?xml version="1.0" encoding="UTF-8"?>
     <category></category>
     <executable output="ignore" error="ignore" modifiesdocument="yes">
         <path>C:/Windows/System32/cmd.exe</path>
-        <arguments>/c start cmd.exe /c {qt_bin}\\qmltestrunnerx.bat -input %{{CurrentDocument:FilePath}}</arguments>
+        <arguments>/c start cmd.exe /c {qt_bin}\\qmltestrunnerx.bat -import {test_folder} -input %{{CurrentDocument:FilePath}}</arguments>
         <workingdirectory>{qt_bin}</workingdirectory>
     </executable>
 </externaltool>'''
@@ -98,7 +98,7 @@ def modify_qt_creator_settings_file():
     setting_file.close()
 
 
-def create_external_tools(qt_path):
+def create_external_tools(qt_path, qml_import_test_path):
     
     global TESTRUNNER_QT_EXTERNAL_TOOL
     global TESTRUNNER_AUTO_FIND_QT_EXTERNAL_TOOL
@@ -106,12 +106,12 @@ def create_external_tools(qt_path):
     qt_creator_setting_path = os.getenv("APPDATA") + "\\QtProject\\qtcreator\\externaltools"
 
     f = open(qt_creator_setting_path + "\\qmltestrunnerx.xml", "w+")
-    content = TESTRUNNER_QT_EXTERNAL_TOOL.format(qt_bin = qt_path)
+    content = TESTRUNNER_QT_EXTERNAL_TOOL.format(qt_bin = qt_path, test_folder = qml_import_test_path)
     f.write(content)
     f.close()
 
     f = open(qt_creator_setting_path + "\\qmltestrunnerx_autoFind.xml", "w+")
-    content = TESTRUNNER_AUTO_FIND_QT_EXTERNAL_TOOL.format(qt_bin = qt_path)
+    content = TESTRUNNER_AUTO_FIND_QT_EXTERNAL_TOOL.format(qt_bin = qt_path, test_folder = qml_import_test_path)
     f.write(content)
     f.close()
 
@@ -143,14 +143,14 @@ def copy_file_to_qt_creator():
         os.makedirs(qt_creator_setting_path)
 
 
-def install(qt_path):
+def install(qt_path, qml_import_test_path):
 
     backup_qt_setting_file()
     modify_qt_creator_settings_file()
     copy_file_to_qt_path(qt_path)
     create_testrunner_scripts(qt_path)
     copy_file_to_qt_creator()
-    create_external_tools(qt_path)
+    create_external_tools(qt_path, qml_import_test_path)
 
 
 def remove_qt_creator_settings():
@@ -213,14 +213,15 @@ def main():
     parser = argparse.ArgumentParser(description='Install QtCreator QmlTestrunnerUtililty')
     
     parser.add_argument('qt_path', help='qt/msvc2017/bin')
+    parser.add_argument('qml_import_test_path', help='QML/VAST2/Test')
     parser.add_argument('--uninstall', '-u', action='store_true')
-    
+
     args = parser.parse_args()
 
     if args.uninstall:
         uninstall(args.qt_path)
     else:
-        install(args.qt_path)
+        install(args.qt_path, args.qml_import_test_path)
 
 
 if __name__ == "__main__":
