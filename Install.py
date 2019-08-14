@@ -8,12 +8,14 @@ import distutils.dir_util
 QT_CREATOR_SETTING_EXTERNAL_TOOLS = "[ExternalTools]"
 QT_CREATOR_SETTING_KEYBOARD_SHOURTCUTS = "[KeyboardShortcuts]"
 
-TESTRUNNER_EXTERNAL_TOOLS = '''OverrideCategories\\testrunnerx\\size=2
+TESTRUNNER_EXTERNAL_TOOLS = '''OverrideCategories\\testrunnerx\\size=3
 OverrideCategories\\testrunnerx\\1\\Tool=qmltestrunnerx_autoFind
-OverrideCategories\\testrunnerx\\2\\Tool=qmltestrunnerx'''
+OverrideCategories\\testrunnerx\\2\\Tool=qmltestrunnerx
+OverrideCategories\\testrunnerx\\3\\Tool=qmltestrunnerx_toggleFile'''
 
 TESTRUNNER_SHORTCUT = '''Tools.External.qmltestrunnerx_autoFind=Ctrl+E
 Tools.External.qmltestrunnerx=Ctrl+`
+Tools.External.qmltestrunnerx_toggleFile=Ctrl+~
 '''
 
 TESTRUNNER_SCRIPT_FOR_AUTO_FIND = '''@setlocal enableextensions enabledelayedexpansion
@@ -35,6 +37,24 @@ if "x%last_arg:tst_=%"=="x%last_arg%" (
 
 qmltestrunner %all_arg% %last_arg% | python highlighter.py
 pause'''
+
+TESTRUNNER_SCRIPT_TOGGLE_FILE = '''@setlocal enableextensions enabledelayedexpansion
+%echo off
+
+set "input=%1"
+set "filename=%~nx1"
+
+if "x%input:tst_=%"=="x%input%" (
+    FOR %%A in ("%input%") do (
+        SET input=%%~dpAUT\\tst_%%~nxA
+    )
+) else (
+    FOR %%A in ("%input%") do (
+        SET input=%%~dpA..\\%filename:tst_=%
+    )
+)
+
+%input%'''
 
 TESTRUNNER_SCRIPT = '''@echo off
 qmltestrunner %* | python highlighter.py
@@ -60,6 +80,18 @@ TESTRUNNER_QT_EXTERNAL_TOOL = '''<?xml version="1.0" encoding="UTF-8"?>
     <executable output="ignore" error="ignore" modifiesdocument="yes">
         <path>C:/Windows/System32/cmd.exe</path>
         <arguments>/c start cmd.exe /c {qt_bin}\\qmltestrunnerx.bat -import {test_folder} -input %{{CurrentDocument:FilePath}}</arguments>
+        <workingdirectory>{qt_bin}</workingdirectory>
+    </executable>
+</externaltool>'''
+
+TESTRUNNER_TOGGLE_FILE_QT_EXTERNAL_TOOL = '''<?xml version="1.0" encoding="UTF-8"?>
+<externaltool id="qmltestrunnerx_toggleFile">
+    <description></description>
+    <displayname>qmltestrunnerx_toggleFile</displayname>
+    <category></category>
+    <executable output="ignore" error="ignore" modifiesdocument="yes">
+        <path>C:/Windows/System32/cmd.exe</path>
+        <arguments>/c {qt_bin}\\qmltestrunnerx_toggleFile.bat %{{CurrentDocument:FilePath}}</arguments>
         <workingdirectory>{qt_bin}</workingdirectory>
     </executable>
 </externaltool>'''
@@ -102,6 +134,7 @@ def create_external_tools(qt_path, qml_import_test_path):
     
     global TESTRUNNER_QT_EXTERNAL_TOOL
     global TESTRUNNER_AUTO_FIND_QT_EXTERNAL_TOOL
+    global TESTRUNNER_TOGGLE_FILE_QT_EXTERNAL_TOOL
 
     qt_creator_setting_path = os.getenv("APPDATA") + "\\QtProject\\qtcreator\\externaltools"
 
@@ -115,10 +148,17 @@ def create_external_tools(qt_path, qml_import_test_path):
     f.write(content)
     f.close()
 
+    f = open(qt_creator_setting_path + "\\qmltestrunnerx_toggleFile.xml", "w+")
+    content = TESTRUNNER_TOGGLE_FILE_QT_EXTERNAL_TOOL.format(qt_bin = qt_path)
+    f.write(content)
+    f.close()
+
 
 def create_testrunner_scripts(qt_path):
 
     global TESTRUNNER_SCRIPT_FOR_AUTO_FIND
+    global TESTRUNNER_SCRIPT
+    global TESTRUNNER_SCRIPT_TOGGLE_FILE
 
     f = open(qt_path + "\\qmltestrunnerX_autoFind.bat", "w+")
     f.write(TESTRUNNER_SCRIPT_FOR_AUTO_FIND)
@@ -126,6 +166,10 @@ def create_testrunner_scripts(qt_path):
 
     f = open(qt_path + "\\qmltestrunnerX.bat", "w+")
     f.write(TESTRUNNER_SCRIPT)
+    f.close()
+
+    f = open(qt_path + "\\qmltestrunnerX_toggleFile.bat", "w+")
+    f.write(TESTRUNNER_SCRIPT_TOGGLE_FILE)
     f.close()
 
 
@@ -155,9 +199,6 @@ def install(qt_path, qml_import_test_path):
 
 def remove_qt_creator_settings():
 
-    global TESTRUNNER_EXTERNAL_TOOLS
-    global TESTRUNNER_SHORTCUT
-
     qt_creator_setting_file_path = os.getenv("APPDATA") + "\\QtProject\\QtCreator.ini"
     setting_file = open(qt_creator_setting_file_path, "r")
 
@@ -186,6 +227,9 @@ def remove_script_and_binary(qt_path):
     if os.path.exists(qt_path + '\\qmltestrunnerX.bat'):
         os.remove(qt_path + '\\qmltestrunnerX.bat')
 
+    if os.path.exists(qt_path + '\\qmltestrunnerX_toggleFile.bat'):
+        os.remove(qt_path + '\\qmltestrunnerX_toggleFile.bat')
+
     if os.path.exists(qt_path + '\\highlighter.py'):
         os.remove(qt_path + '\\highlighter.py')
 
@@ -199,6 +243,9 @@ def remove_external_tools():
     
     if os.path.exists(qt_creator_setting_path + "\\qmltestrunnerx_autoFind.xml"):
         os.remove(qt_creator_setting_path + "\\qmltestrunnerx_autoFind.xml")
+    
+    if os.path.exists(qt_creator_setting_path + "\\qmltestrunnerX_toggleFile.xml"):
+        os.remove(qt_creator_setting_path + "\\qmltestrunnerX_toggleFile.xml")
 
 
 def uninstall(qt_path):
