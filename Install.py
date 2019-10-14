@@ -1,5 +1,5 @@
 import os
-import _winreg
+import winreg
 import re
 import argparse
 import shutil

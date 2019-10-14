@@ -30,21 +30,21 @@ if __name__ == "__main__":
 
         elif firstToken == 'QWARN':
             is_fail = False
-            print '\033[93m' + line.rstrip() + '\033[0m'
+            print('\033[93m' + line.rstrip() + '\033[0m')
 
         elif firstToken == 'QDEBUG':
             is_fail = False
-            print '\033[96m' + line.rstrip() + '\033[0m'
+            print('\033[96m' + line.rstrip() + '\033[0m')
 
         elif firstToken == 'FAIL!':
             is_fail = True
-            print '\033[1;31m' + line.rstrip() + '\033[0m'
+            print('\033[1;31m' + line.rstrip() + '\033[0m')
 
         elif is_fail:
-            print '\033[33m' + line.rstrip() + '\033[0m'
+            print('\033[33m' + line.rstrip() + '\033[0m')
 
         else:
-            print '\033[1m' + line.rstrip() + '\033[0m'
+            print('\033[1m' + line.rstrip() + '\033[0m')
             
 
     if (is_win7):
