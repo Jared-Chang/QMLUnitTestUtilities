@@ -7,264 +7,204 @@ import distutils.dir_util
 
 QT_CREATOR_SETTING_EXTERNAL_TOOLS = "[ExternalTools]"
 QT_CREATOR_SETTING_KEYBOARD_SHOURTCUTS = "[KeyboardShortcuts]"
+TOOL_PREFIX = "UnitTestUtilities"
 
-TESTRUNNER_EXTERNAL_TOOLS = '''OverrideCategories\\testrunnerx\\size=3
-OverrideCategories\\testrunnerx\\1\\Tool=qmltestrunnerx_autoFind
-OverrideCategories\\testrunnerx\\2\\Tool=qmltestrunnerx
-OverrideCategories\\testrunnerx\\3\\Tool=qmltestrunnerx_toggleFile'''
+def create_tool(name, shortcut, command):
+    global TOOL_PREFIX
+    return {'name': TOOL_PREFIX + "_" + name, 'shortcut': shortcut, 'command': command}
 
-TESTRUNNER_SHORTCUT = '''Tools.External.qmltestrunnerx_autoFind=Ctrl+E
-Tools.External.qmltestrunnerx=Ctrl+`
-Tools.External.qmltestrunnerx_toggleFile=Ctrl+~
-'''
+tools = [
+    create_tool(
+        name = 'autoFindAndRun', 
+        shortcut = 'Ctrl+E', 
+        command = '/c start cmd.exe /c {script_path}\\UnitTestUtilities_autoFindAndRun.bat {imports} -input %{{CurrentDocument:FilePath}}'),
 
-TESTRUNNER_SCRIPT_FOR_AUTO_FIND = '''@setlocal enableextensions enabledelayedexpansion
-@echo off
+    create_tool(
+        name = 'run', 
+        shortcut = 'Ctrl+`', 
+        command = '/c start cmd.exe /c {script_path}\\UnitTestUtilities_run.bat {imports} -input %{{CurrentDocument:FilePath}}'),
 
-SET all_arg=%1
-
-:lastarg
-    set "last_arg=%1"
-    shift
-    if not "%2"=="" SET all_arg=%all_arg% %1
-    if not "%1"=="" goto lastarg 
-
-if "x%last_arg:tst_=%"=="x%last_arg%" (
-    FOR %%A in ("%last_arg%") do (
-        SET last_arg=%%~dpAUT\\tst_%%~nxA
-    )
-)
-
-qmltestrunner %all_arg% %last_arg% | python highlighter.py
-pause'''
-
-TESTRUNNER_SCRIPT_TOGGLE_FILE = '''@setlocal enableextensions enabledelayedexpansion
-%echo off
-
-set "input=%1"
-set "filename=%~nx1"
-
-if "x%input:tst_=%"=="x%input%" (
-    FOR %%A in ("%input%") do (
-        SET input=%%~dpAUT\\tst_%%~nxA
-    )
-) else (
-    FOR %%A in ("%input%") do (
-        SET input=%%~dpA..\\%filename:tst_=%
-    )
-)
-
-%input%'''
-
-TESTRUNNER_SCRIPT = '''@echo off
-qmltestrunner %* | python highlighter.py
-pause'''
-
-TESTRUNNER_AUTO_FIND_QT_EXTERNAL_TOOL = '''<?xml version="1.0" encoding="UTF-8"?>
-<externaltool id="qmltestrunnerx_autoFind">
-    <description></description>
-    <displayname>qmltestrunnerx_autoFind</displayname>
-    <category></category>
-    <executable output="ignore" error="ignore" modifiesdocument="yes">
-        <path>C:/Windows/System32/cmd.exe</path>
-        <arguments>/c start cmd.exe /c {qt_bin}\\qmltestrunnerx_autoFind.bat -import {test_folder} -input %{{CurrentDocument:FilePath}}</arguments>
-        <workingdirectory>{qt_bin}</workingdirectory>
-    </executable>
-</externaltool>'''
-
-TESTRUNNER_QT_EXTERNAL_TOOL = '''<?xml version="1.0" encoding="UTF-8"?>
-<externaltool id="qmltestrunnerx">
-    <description></description>
-    <displayname>qmltestrunnerx</displayname>
-    <category></category>
-    <executable output="ignore" error="ignore" modifiesdocument="yes">
-        <path>C:/Windows/System32/cmd.exe</path>
-        <arguments>/c start cmd.exe /c {qt_bin}\\qmltestrunnerx.bat -import {test_folder} -input %{{CurrentDocument:FilePath}}</arguments>
-        <workingdirectory>{qt_bin}</workingdirectory>
-    </executable>
-</externaltool>'''
-
-TESTRUNNER_TOGGLE_FILE_QT_EXTERNAL_TOOL = '''<?xml version="1.0" encoding="UTF-8"?>
-<externaltool id="qmltestrunnerx_toggleFile">
-    <description></description>
-    <displayname>qmltestrunnerx_toggleFile</displayname>
-    <category></category>
-    <executable output="ignore" error="ignore" modifiesdocument="yes">
-        <path>C:/Windows/System32/cmd.exe</path>
-        <arguments>/c {qt_bin}\\qmltestrunnerx_toggleFile.bat %{{CurrentDocument:FilePath}}</arguments>
-        <workingdirectory>{qt_bin}</workingdirectory>
-    </executable>
-</externaltool>'''
+    create_tool(
+        name = 'toggleFile', 
+        shortcut = 'Ctrl+~', 
+        command = '/c {script_path}\\UnitTestUtilities_toggleFile.bat %{{CurrentDocument:FilePath}}')
+    ]
 
 def backup_qt_setting_file():
     qt_creator_setting_file_path = os.getenv("APPDATA") + "\\QtProject\\QtCreator.ini"
     shutil.copy2(qt_creator_setting_file_path, qt_creator_setting_file_path + ".bk")
 
 
+def generate_external_tool_settings():
+    global tools
+    global TOOL_PREFIX
+
+    settings_title = 'OverrideCategories\\{tool_prefix}\\size={size}\n'
+    settings = 'OverrideCategories\\{tool_prefix}\\{index}\\Tool={name}\n'
+
+    result = settings_title.format(size = len(tools), tool_prefix = TOOL_PREFIX)
+
+    for index in range(1, len(tools) + 1):
+        result += settings.format(index = index, name = tools[index-1]['name'], tool_prefix = TOOL_PREFIX)
+
+    return result
+
+
+def generate_shortcuts():
+    global tools
+
+    shortcut = 'Tools.External.{name}={shortcut}\n'
+
+    result = ''
+
+    for tool in tools:
+        result += shortcut.format(name = tool['name'], shortcut = tool['shortcut'])
+
+    return result
+
+
 def modify_qt_creator_settings_file():
     
     global QT_CREATOR_SETTING_EXTERNAL_TOOLS
     global QT_CREATOR_SETTING_KEYBOARD_SHOURTCUTS
-    global TESTRUNNER_EXTERNAL_TOOLS
-    global TESTRUNNER_SHORTCUT
 
     qt_creator_setting_file_path = os.getenv("APPDATA") + "\\QtProject\\QtCreator.ini"
-    setting_file = open(qt_creator_setting_file_path, "r")
-    settings = setting_file.read()
-    setting_file.close()
 
+    settings = ''
+
+    with open(qt_creator_setting_file_path, "r") as setting_file:
+        settings = setting_file.read()
+
+    external_tool_settings = generate_external_tool_settings()
     external_tools_index = settings.find(QT_CREATOR_SETTING_EXTERNAL_TOOLS)
     if external_tools_index != -1:
-        settings = settings[:external_tools_index + len(QT_CREATOR_SETTING_EXTERNAL_TOOLS)] + "\n" + TESTRUNNER_EXTERNAL_TOOLS + settings[external_tools_index + len(QT_CREATOR_SETTING_EXTERNAL_TOOLS):]
+        settings = settings[:external_tools_index + len(QT_CREATOR_SETTING_EXTERNAL_TOOLS)] + "\n" + external_tool_settings + settings[external_tools_index + len(QT_CREATOR_SETTING_EXTERNAL_TOOLS):]
     else:
-        settings += "\n" + QT_CREATOR_SETTING_EXTERNAL_TOOLS + "\n" + TESTRUNNER_EXTERNAL_TOOLS
+        settings += "\n" + QT_CREATOR_SETTING_EXTERNAL_TOOLS + "\n" + external_tool_settings
 
+    shortcuts = generate_shortcuts()
     keyboard_shortcuts_index = settings.find(QT_CREATOR_SETTING_KEYBOARD_SHOURTCUTS)
     if keyboard_shortcuts_index != -1:
-        settings = settings[:keyboard_shortcuts_index + len(QT_CREATOR_SETTING_KEYBOARD_SHOURTCUTS)] + "\n" + TESTRUNNER_SHORTCUT + settings[keyboard_shortcuts_index + len(QT_CREATOR_SETTING_KEYBOARD_SHOURTCUTS):]
+        settings = settings[:keyboard_shortcuts_index + len(QT_CREATOR_SETTING_KEYBOARD_SHOURTCUTS)] + "\n" + shortcuts + settings[keyboard_shortcuts_index + len(QT_CREATOR_SETTING_KEYBOARD_SHOURTCUTS):]
     else:
-        settings += "\n" + QT_CREATOR_SETTING_KEYBOARD_SHOURTCUTS + "\n" + TESTRUNNER_SHORTCUT
-
-    setting_file = open(qt_creator_setting_file_path, "w")
-    setting_file.write(settings)
-    setting_file.close()
+        settings += "\n" + QT_CREATOR_SETTING_KEYBOARD_SHOURTCUTS + "\n" + shortcuts
 
 
-def create_external_tools(qt_path, qml_import_test_path):
+    with open(qt_creator_setting_file_path, "w") as setting_file:
+        setting_file.write(settings)
+
+
+def generate_external_tools_xml(tool, bin, imports, installer_path):
+
+    xml = '''<?xml version="1.0" encoding="UTF-8"?>
+<externaltool id="{name}">
+    <description></description>
+    <displayname>{name}</displayname>
+    <category></category>
+    <executable output="ignore" error="ignore" modifiesdocument="yes">
+        <path>C:/Windows/System32/cmd.exe</path>
+        <arguments>{command}</arguments>
+        <workingdirectory>{bin}</workingdirectory>
+    </executable>
+</externaltool>'''
+
+    command = tool['command'].format(script_path = installer_path + "\\bin", imports = imports)
+
+    return xml.format(name = tool['name'], command = command, bin = bin)
+
+def create_external_tools(bin, imports, installer_path):
     
-    global TESTRUNNER_QT_EXTERNAL_TOOL
-    global TESTRUNNER_AUTO_FIND_QT_EXTERNAL_TOOL
-    global TESTRUNNER_TOGGLE_FILE_QT_EXTERNAL_TOOL
+    global tools
 
-    qt_creator_setting_path = os.getenv("APPDATA") + "\\QtProject\\qtcreator\\externaltools"
+    imports = ' '.join(['-import {import_path}'.format(import_path=import_path) for import_path in imports])
 
-    f = open(qt_creator_setting_path + "\\qmltestrunnerx.xml", "w+")
-    content = TESTRUNNER_QT_EXTERNAL_TOOL.format(qt_bin = qt_path, test_folder = qml_import_test_path)
-    f.write(content)
-    f.close()
+    qt_creator_setting_path_pattern = os.getenv("APPDATA") + "\\QtProject\\qtcreator\\externaltools\\{name}.xml"
 
-    f = open(qt_creator_setting_path + "\\qmltestrunnerx_autoFind.xml", "w+")
-    content = TESTRUNNER_AUTO_FIND_QT_EXTERNAL_TOOL.format(qt_bin = qt_path, test_folder = qml_import_test_path)
-    f.write(content)
-    f.close()
-
-    f = open(qt_creator_setting_path + "\\qmltestrunnerx_toggleFile.xml", "w+")
-    content = TESTRUNNER_TOGGLE_FILE_QT_EXTERNAL_TOOL.format(qt_bin = qt_path)
-    f.write(content)
-    f.close()
+    for tool in tools:
+        with open(qt_creator_setting_path_pattern.format(name = tool['name']), "w+") as f:
+            f.write(generate_external_tools_xml(tool, bin, imports, installer_path))
 
 
-def create_testrunner_scripts(qt_path):
+def create_scripts(installer_path, pattern, prefix):
 
-    global TESTRUNNER_SCRIPT_FOR_AUTO_FIND
-    global TESTRUNNER_SCRIPT
-    global TESTRUNNER_SCRIPT_TOGGLE_FILE
+    global tools
 
-    f = open(qt_path + "\\qmltestrunnerX_autoFind.bat", "w+")
-    f.write(TESTRUNNER_SCRIPT_FOR_AUTO_FIND)
-    f.close()
+    template_path = installer_path + '\\template\\{name}.bat'
+    output_path = installer_path + '\\bin\\{name}.bat'
 
-    f = open(qt_path + "\\qmltestrunnerX.bat", "w+")
-    f.write(TESTRUNNER_SCRIPT)
-    f.close()
+    for tool in tools:
 
-    f = open(qt_path + "\\qmltestrunnerX_toggleFile.bat", "w+")
-    f.write(TESTRUNNER_SCRIPT_TOGGLE_FILE)
-    f.close()
+        content = ''
+        with open(template_path.format(name = tool['name']), "r") as template:
+            content = template.read()
 
+        content = re.sub(r"PATTERN\b", pattern, content)
+        content = re.sub(r"PREFIX\b", prefix, content)
 
-def copy_file_to_qt_path(qt_path):
-
-    shutil.copy2(".\\highlighter.py", qt_path)
-
-
-def copy_file_to_qt_creator():
-
-    qt_creator_setting_path = os.getenv("APPDATA") + "\\QtProject\\qtcreator\\externaltools"
-
-    if not os.path.exists(qt_creator_setting_path):
-        os.makedirs(qt_creator_setting_path)
-
-
-def install(qt_path, qml_import_test_path):
-
-    backup_qt_setting_file()
-    modify_qt_creator_settings_file()
-    copy_file_to_qt_path(qt_path)
-    create_testrunner_scripts(qt_path)
-    copy_file_to_qt_creator()
-    create_external_tools(qt_path, qml_import_test_path)
+        with open(output_path.format(name = tool['name']), "w+") as output:
+            output.write(content)
 
 
 def remove_qt_creator_settings():
 
+    global TOOL_PREFIX
+
     qt_creator_setting_file_path = os.getenv("APPDATA") + "\\QtProject\\QtCreator.ini"
-    setting_file = open(qt_creator_setting_file_path, "r")
+    
+    with open(qt_creator_setting_file_path, "r") as setting_file:
+        content = ''
 
-    content = ''
-
-    for line in setting_file.readlines():
-        not_contain_testrunnerx = line.find('testrunnerx') == -1
-        if not_contain_testrunnerx:
-            content += line
-
-    setting_file.close()
+        for line in setting_file.readlines():
+            if line.find(TOOL_PREFIX) == -1:
+                content += line
             
-    setting_file = open(qt_creator_setting_file_path, "w")
-    setting_file.write(content)
-    setting_file.close()
-
-
-def remove_script_and_binary(qt_path):
-
-    if os.path.exists(qt_path + '\\qmltestrunnerX_autoFind.bat'):
-        os.remove(qt_path + '\\qmltestrunnerX_autoFind.bat')
-
-    if os.path.exists(qt_path + '\\qmltestrunnerX.bat'):
-        os.remove(qt_path + '\\qmltestrunnerX.bat')
-
-    if os.path.exists(qt_path + '\\qmltestrunnerX_toggleFile.bat'):
-        os.remove(qt_path + '\\qmltestrunnerX_toggleFile.bat')
-
-    if os.path.exists(qt_path + '\\highlighter.py'):
-        os.remove(qt_path + '\\highlighter.py')
+    with open(qt_creator_setting_file_path, "w") as setting_file:
+        setting_file.write(content)
 
 
 def remove_external_tools():
 
-    qt_creator_setting_path = os.getenv("APPDATA") + "\\QtProject\\qtcreator\\externaltools\\"
+    global tools
 
-    if os.path.exists(qt_creator_setting_path + "\\qmltestrunnerx.xml"):
-        os.remove(qt_creator_setting_path + "\\qmltestrunnerx.xml")
-    
-    if os.path.exists(qt_creator_setting_path + "\\qmltestrunnerx_autoFind.xml"):
-        os.remove(qt_creator_setting_path + "\\qmltestrunnerx_autoFind.xml")
-    
-    if os.path.exists(qt_creator_setting_path + "\\qmltestrunnerX_toggleFile.xml"):
-        os.remove(qt_creator_setting_path + "\\qmltestrunnerX_toggleFile.xml")
+    qt_creator_setting_path_pattern = os.getenv("APPDATA") + "\\QtProject\\qtcreator\\externaltools\\{name}.xml"
+
+    for tool in tools:
+        if os.path.exists(qt_creator_setting_path_pattern.format(name = tool['name'])):
+            os.remove(qt_creator_setting_path_pattern.format(name = tool['name']))
 
 
-def uninstall(qt_path):
+def install(bin, imports, installer_path, pattern, prefix):
+
+    backup_qt_setting_file()
+    modify_qt_creator_settings_file()
+    create_scripts(installer_path, pattern, prefix)
+    create_external_tools(bin, imports, installer_path)
+
+
+def uninstall():
 
     backup_qt_setting_file()
     remove_qt_creator_settings()
-    remove_script_and_binary(qt_path)
     remove_external_tools()
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Install QtCreator QmlTestrunnerUtililty')
+    parser = argparse.ArgumentParser(description='Install QtCreator Qml Unit Test Utility')
     
-    parser.add_argument('qt_path', help='qt/msvc2017/bin')
-    parser.add_argument('qml_import_test_path', help='QML/VAST2/Test')
+    parser.add_argument('--bin', '-b', default="", help='QT binary folder')
+    parser.add_argument('--import_path', '-m', default="", action='append', help='Import path')
+    parser.add_argument('--pattern', '-p', default=r"UT\\\\tst_", help='Unit test file path pattern, if your source file is a/b/c.qml then unit test is a/b/c/d/test_c.qml, pattern is d/test_')
+    parser.add_argument('--prefix', '-x', default="tst_", help='Unit test file prefix, e.g. prefix of test_c.qml is test_, due to source file is c.qml')
     parser.add_argument('--uninstall', '-u', action='store_true')
 
     args = parser.parse_args()
 
+    installer_path = os.path.dirname(os.path.abspath(__file__))
+
     if args.uninstall:
-        uninstall(args.qt_path)
+        uninstall()
     else:
-        install(args.qt_path, args.qml_import_test_path)
+        install(args.bin, args.import_path, installer_path, args.pattern, args.prefix)
 
 
 if __name__ == "__main__":
