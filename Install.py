@@ -176,7 +176,6 @@ def create_testrunner_scripts(qt_path):
 def copy_file_to_qt_path(qt_path):
 
     shutil.copy2(".\\highlighter.py", qt_path)
-    distutils.dir_util.copy_tree(".\\ansiconx64", qt_path + "\\ansiconx64")
 
 
 def copy_file_to_qt_creator():
@@ -217,9 +216,6 @@ def remove_qt_creator_settings():
 
 
 def remove_script_and_binary(qt_path):
-
-    if os.path.exists(qt_path + '\\ansiconx64'):
-        shutil.rmtree(qt_path + '\\ansiconx64')
 
     if os.path.exists(qt_path + '\\qmltestrunnerX_autoFind.bat'):
         os.remove(qt_path + '\\qmltestrunnerX_autoFind.bat')
